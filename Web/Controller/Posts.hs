@@ -21,6 +21,8 @@ instance Controller PostsController where
 
     action ShowPostAction { postId } = do
         post <- fetch postId
+                >>=pure . modify #comments (orderByDesc #createdAt)
+                >>= fetchRelated #comments
         render ShowView { .. }
 
     action EditPostAction { postId } = do
@@ -59,6 +61,7 @@ buildPost post = post
     |> fill @["title", "body"]
     |> validateField #title nonEmpty
     |> validateField #body nonEmpty
+    |> validateField #body isMarkdown
 
 isMarkdown :: Text -> ValidatorResult
 isMarkdown text = 
